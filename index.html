@@ -5,1069 +5,789 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>CoinAlert — RSI Monitor</title>
   <style>
-    *{box-sizing:border-box;margin:0;padding:0}
-    body{background:#0d0f14;color:#e0e0e0;font-family:'Segoe UI',system-ui,sans-serif;font-size:14px;padding:16px;max-width:1100px;margin:0 auto}
-    h1{font-size:21px;font-weight:700;color:#fff;margin-bottom:4px}
-    .meta{color:#555;font-size:12px;margin-bottom:20px} .meta span{color:#aaa}
-    .section{margin-bottom:24px}
-    .stitle{font-size:14px;font-weight:700;margin-bottom:10px;display:flex;align-items:center;gap:8px}
-    .stitle.red{color:#ff4444} .stitle.green{color:#33bb55} .stitle.gray{color:#666}
-    .badge{background:#1e2230;color:#888;font-size:11px;padding:1px 7px;border-radius:10px}
-    .empty{color:#444;font-size:13px;padding:6px 0}
-    .tscroll{overflow-x:auto}
-    table{width:100%;border-collapse:collapse;min-width:700px}
-    th{text-align:left;color:#444;font-size:10px;text-transform:uppercase;letter-spacing:.05em;padding:5px 8px;border-bottom:1px solid #1a1d27;white-space:nowrap}
-    td{padding:6px 8px;border-bottom:1px solid #131620;vertical-align:middle}
-    tr:last-child td{border-bottom:none}
-    tr:hover td{background:rgba(255,255,255,0.02)}
-    td.rank{color:#444;font-size:11px;width:40px}
-    td.symbol{font-weight:700;color:#fff;font-size:14px;width:70px}
-    td.price{color:#888;font-size:12px;width:100px}
-    td.rsi{font-weight:600;width:75px;white-space:nowrap}
-    td.rsi.overbought{color:#ff4444} td.rsi.oversold{color:#33bb55}
-    td.vol{font-size:12px;width:80px}
-    td.src{font-size:10px;font-weight:600;width:45px;color:#555}
-    td.src-bin{color:#f0b90b} td.src-kuc{color:#26a17b}
-    .arr-up{color:#33bb55;font-size:9px;margin-left:2px}
-    .arr-dn{color:#ff4444;font-size:9px;margin-left:2px}
-    hr{border:none;border-top:1px solid #1a1d27;margin:20px 0}
-    .legend{font-size:11px;color:#444;display:flex;gap:16px;flex-wrap:wrap;margin-top:16px}
-    .legend span{display:flex;align-items:center;gap:4px}
-    .dot{width:7px;height:7px;border-radius:50%}
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: #0d0f14;
+      color: #e0e0e0;
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      font-size: 14px;
+      padding: 20px;
+      max-width: 900px;
+      margin: 0 auto;
+    }
+    h1 { font-size: 22px; font-weight: 700; color: #fff; margin-bottom: 4px; }
+    .meta { color: #666; font-size: 12px; margin-bottom: 24px; }
+    .meta span { color: #aaa; }
+    .section { margin-bottom: 28px; }
+    .section-title {
+      font-size: 15px; font-weight: 700;
+      margin-bottom: 12px;
+      display: flex; align-items: center; gap: 8px;
+    }
+    .section-title.red  { color: #ff4444; }
+    .section-title.green { color: #33bb55; }
+    .section-title.gray  { color: #888; }
+    .badge {
+      background: #1e2230; color: #aaa;
+      font-size: 11px; font-weight: 500;
+      padding: 1px 7px; border-radius: 10px;
+    }
+    .empty { color: #555; font-size: 13px; padding: 8px 0; }
+    table { width: 100%; border-collapse: collapse; }
+    th {
+      text-align: left; color: #555;
+      font-size: 11px; font-weight: 500;
+      text-transform: uppercase; letter-spacing: 0.05em;
+      padding: 6px 10px; border-bottom: 1px solid #1e2230;
+    }
+    td { padding: 7px 10px; border-bottom: 1px solid #151821; vertical-align: middle; }
+    tr:last-child td { border-bottom: none; }
+    tr:hover td { background: rgba(255,255,255,0.02); }
+    td.rank   { color: #555; font-size: 12px; width: 45px; }
+    td.symbol { font-weight: 700; color: #fff; font-size: 15px; width: 80px; }
+    td.price  { color: #aaa; width: 110px; font-size: 13px; }
+    td.rsi    { font-weight: 700; width: 80px; }
+    td.rsi.overbought { color: #ff4444; }
+    td.rsi.oversold   { color: #33bb55; }
+    td.vol    { width: 90px; font-size: 13px; }
+    span.src  {
+      font-size: 10px; font-weight: 600;
+      padding: 2px 5px; border-radius: 3px;
+      background: #1a1d27; color: #666;
+    }
+    span.src-BIN { color: #f0b90b; }
+    span.src-KUC { color: #26a17b; }
+    .divider { border: none; border-top: 1px solid #1e2230; margin: 24px 0; }
   </style>
 </head>
 <body>
   <h1>CoinAlert — RSI Monitor</h1>
-  <div class="meta">🕐 Обновлено: <span>2026-05-31 11:12 (МНЕ)</span> · Монет: <span>86</span> · обновление каждые 15 мин &nbsp;|&nbsp; <a href="https://psv044581.github.io/rsi_portfolio_auto/" target="_blank" style="color:#4488ff;text-decoration:none">RSI Portfolio →</a></div>
-  
-    <div class="pulse">
-      <div class="pulse-title">🌡️ Пульс рынка</div>
-      <div class="pulse-grid">
-        <div class="pulse-card">
-          <div class="pc-label">Crypto Fear &amp; Greed</div>
-          <div class="pc-val" style="color:#ff8800">28 <span style="font-size:12px">😨 Fear</span></div>
-          <div class="pc-bar"><div class="pc-fill" style="width:28%;background:#ff8800"></div></div>
-        </div>
-        <div class="pulse-card">
-          <div class="pc-label">Крипто капитализация</div>
-          <div class="pc-val">$2.58T <span style="color:#33bb55">+0.75%</span></div>
-          <div class="pc-sub">Объём 24h: $54.4B</div>
-        </div>
-        <div class="pulse-card">
-          <div class="pc-label">BTC / ETH доминация</div>
-          <div class="pc-val">57.3% <span style="color:#888;font-size:13px">/ 9.5%</span></div>
-        </div>
-        <div class="pulse-card">
-          <div class="pc-label">BTC Фандинг (8h)</div>
-          <div class="pc-val" style="color:#aaa">+0.0062%</div>
-          <div class="pc-sub">Лонги платят</div>
-        </div>
-        <div class="pulse-card">
-          <div class="pc-label">BTC Long / Short</div>
-          <div class="pc-val">1.49 <span style="font-size:12px;color:#888">(59.9% / 40.1%)</span></div>
-        </div>
-        <div class="pulse-card">
-          <div class="pc-label">BTC Open Interest</div>
-          <div class="pc-val">105.1K BTC</div>
-        </div>
-      </div>
-    </div>
+  <div class="meta">🕐 Обновлено: <span>2026-05-31 09:23 UTC</span> · Проверено монет: <span>86</span> · Следующее обновление через 15 мин</div>
+
   
     <div class="section">
-      <div class="stitle red">🔴 Перекупленные (RSI 1D ≥ 70) <span class="badge">4</span></div>
-      <div class="tscroll">
+      <div class="section-title red">🔴 Перекупленные (RSI ≥ 70) <span class="badge">4</span></div>
       <table>
-        <thead><tr>
-          <th>#</th><th>Монета</th><th>Цена</th>
-          <th>RSI 1H</th><th>RSI 1D (14D)</th><th>RSI 1W</th><th>RSI 1M</th>
-          <th>Объём</th><th>Биржа</th>
-        </tr></thead>
+        <thead>
+          <tr><th>#</th><th>Монета</th><th>Цена</th><th>RSI 14d</th><th>Объём</th><th>Биржа</th></tr>
+        </thead>
         <tbody>
         <tr>
-          <td class="rank">#45</td>
-          <td class="symbol">DEXE</td>
-          <td class="price">$18.763</td>
-          <td class="rsi">60.7 <span class="arr-up">▲</span></td>
-          <td class="rsi overbought">75.0 <span class="arr-up">▲</span></td>
-          <td class="rsi overbought">81.9 </td>
-          <td class="rsi">51.2 </td>
-          <td class="vol" style="color:#555">×0.24</td>
-          <td class="src src-bin">BIN</td>
+          <td class="rank">#74</td>
+          <td class="symbol">INJ</td>
+          <td class="price">$6.540</td>
+          <td class="rsi overbought">74.4</td>
+          <td class="vol" style="color:#aaa">×1.49</td>
+          <span class="src src-binance">BIN</span>
         </tr>
         <tr>
           <td class="rank">#9</td>
           <td class="symbol">HYPE</td>
-          <td class="price">$68.739</td>
-          <td class="rsi">61.8 <span class="arr-up">▲</span></td>
-          <td class="rsi overbought">73.9 <span class="arr-dn">▼</span></td>
-          <td class="rsi overbought">72.7 <span class="arr-dn">▼</span></td>
-          <td class="rsi">—</td>
-          <td class="vol" style="color:#555">×0.34</td>
-          <td class="src src-kuc">KUC</td>
+          <td class="price">$68.701</td>
+          <td class="rsi overbought">73.8</td>
+          <td class="vol" style="color:#666">×0.73</td>
+          <span class="src src-kucoin">KUC</span>
+        </tr>
+        <tr>
+          <td class="rank">#45</td>
+          <td class="symbol">DEXE</td>
+          <td class="price">$18.849</td>
+          <td class="rsi overbought">72.0</td>
+          <td class="vol" style="color:#aaa">×0.84</td>
+          <span class="src src-binance">BIN</span>
         </tr>
         <tr>
           <td class="rank">#55</td>
           <td class="symbol">H</td>
-          <td class="price">$0.3887</td>
-          <td class="rsi">53.3 <span class="arr-dn">▼</span></td>
-          <td class="rsi overbought">73.4 <span class="arr-dn">▼</span></td>
-          <td class="rsi overbought">75.7 <span class="arr-dn">▼</span></td>
-          <td class="rsi">—</td>
-          <td class="vol" style="color:#aaa">×1.09</td>
-          <td class="src src-kuc">KUC</td>
-        </tr>
-        <tr>
-          <td class="rank">#74</td>
-          <td class="symbol">INJ</td>
-          <td class="price">$6.516</td>
-          <td class="rsi">36.8 <span class="arr-dn">▼</span></td>
-          <td class="rsi overbought">72.5 <span class="arr-dn">▼</span></td>
-          <td class="rsi overbought">81.4 <span class="arr-dn">▼</span></td>
-          <td class="rsi">37.3 <span class="arr-dn">▼</span></td>
-          <td class="vol" style="color:#555">×0.25</td>
-          <td class="src src-bin">BIN</td>
+          <td class="price">$0.3922</td>
+          <td class="rsi overbought">70.4</td>
+          <td class="vol" style="color:#ff4444">×3.49 📈</td>
+          <span class="src src-kucoin">KUC</span>
         </tr></tbody>
       </table>
-      </div>
     </div>
   
     <div class="section">
-      <div class="stitle green">🟢 Перепроданные (RSI 1D ≤ 30) <span class="badge">24</span></div>
-      <div class="tscroll">
+      <div class="section-title green">🟢 Перепроданные (RSI ≤ 30) <span class="badge">26</span></div>
       <table>
-        <thead><tr>
-          <th>#</th><th>Монета</th><th>Цена</th>
-          <th>RSI 1H</th><th>RSI 1D (14D)</th><th>RSI 1W</th><th>RSI 1M</th>
-          <th>Объём</th><th>Биржа</th>
-        </tr></thead>
+        <thead>
+          <tr><th>#</th><th>Монета</th><th>Цена</th><th>RSI 14d</th><th>Объём</th><th>Биржа</th></tr>
+        </thead>
         <tbody>
         <tr>
           <td class="rank">#17</td>
           <td class="symbol">BCH</td>
-          <td class="price">$305.952</td>
-          <td class="rsi">46.3 <span class="arr-dn">▼</span></td>
-          <td class="rsi oversold">11.5 <span class="arr-dn">▼</span></td>
-          <td class="rsi oversold">22.2 </td>
-          <td class="rsi">48.6 </td>
-          <td class="vol" style="color:#555">×0.22</td>
-          <td class="src src-bin">BIN</td>
+          <td class="price">$305.749</td>
+          <td class="rsi oversold">9.7</td>
+          <td class="vol" style="color:#666">×0.48</td>
+          <span class="src src-binance">BIN</span>
+        </tr>
+        <tr>
+          <td class="rank">#46</td>
+          <td class="symbol">SKY</td>
+          <td class="price">$0.0654</td>
+          <td class="rsi oversold">13.0</td>
+          <td class="vol" style="color:#666">×0.71</td>
+          <span class="src src-binance">BIN</span>
+        </tr>
+        <tr>
+          <td class="rank">#97</td>
+          <td class="symbol">SIREN</td>
+          <td class="price">$0.5086</td>
+          <td class="rsi oversold">13.8</td>
+          <td class="vol" style="color:#666">×0.28</td>
+          <span class="src src-kucoin">KUC</span>
         </tr>
         <tr>
           <td class="rank">#75</td>
           <td class="symbol">ARB</td>
           <td class="price">$0.1027</td>
-          <td class="rsi oversold">29.6 <span class="arr-dn">▼</span></td>
-          <td class="rsi oversold">13.9 <span class="arr-dn">▼</span></td>
-          <td class="rsi">46.6 <span class="arr-dn">▼</span></td>
-          <td class="rsi oversold">27.8 </td>
-          <td class="vol" style="color:#555">×0.18</td>
-          <td class="src src-bin">BIN</td>
-        </tr>
-        <tr>
-          <td class="rank">#27</td>
-          <td class="symbol">SUI</td>
-          <td class="price">$0.9018</td>
-          <td class="rsi">42.4 <span class="arr-dn">▼</span></td>
-          <td class="rsi oversold">17.7 <span class="arr-dn">▼</span></td>
-          <td class="rsi">47.2 </td>
-          <td class="rsi">34.4 </td>
-          <td class="vol" style="color:#555">×0.09</td>
-          <td class="src src-bin">BIN</td>
+          <td class="rsi oversold">14.1</td>
+          <td class="vol" style="color:#666">×0.61</td>
+          <span class="src src-binance">BIN</span>
         </tr>
         <tr>
           <td class="rank">#86</td>
           <td class="symbol">BONK</td>
           <td class="price">$0.000005</td>
-          <td class="rsi">44.8 <span class="arr-dn">▼</span></td>
-          <td class="rsi oversold">18.3 </td>
-          <td class="rsi">41.5 </td>
-          <td class="rsi">41.5 </td>
-          <td class="vol" style="color:#555">×0.13</td>
-          <td class="src src-bin">BIN</td>
+          <td class="rsi oversold">16.8</td>
+          <td class="vol" style="color:#666">×0.39</td>
+          <span class="src src-binance">BIN</span>
+        </tr>
+        <tr>
+          <td class="rank">#27</td>
+          <td class="symbol">SUI</td>
+          <td class="price">$0.9043</td>
+          <td class="rsi oversold">17.9</td>
+          <td class="vol" style="color:#666">×0.23</td>
+          <span class="src src-binance">BIN</span>
         </tr>
         <tr>
           <td class="rank">#51</td>
           <td class="symbol">ETC</td>
-          <td class="price">$8.202</td>
-          <td class="rsi">38.5 <span class="arr-dn">▼</span></td>
-          <td class="rsi oversold">19.3 <span class="arr-dn">▼</span></td>
-          <td class="rsi">45.9 <span class="arr-dn">▼</span></td>
-          <td class="rsi oversold">22.6 </td>
-          <td class="vol" style="color:#555">×0.07</td>
-          <td class="src src-bin">BIN</td>
-        </tr>
-        <tr>
-          <td class="rank">#46</td>
-          <td class="symbol">SKY</td>
-          <td class="price">$0.0653</td>
-          <td class="rsi">62.4 <span class="arr-dn">▼</span></td>
-          <td class="rsi oversold">19.7 <span class="arr-dn">▼</span></td>
-          <td class="rsi">48.6 <span class="arr-dn">▼</span></td>
-          <td class="rsi">—</td>
-          <td class="vol" style="color:#555">×0.39</td>
-          <td class="src src-bin">BIN</td>
+          <td class="price">$8.208</td>
+          <td class="rsi oversold">18.9</td>
+          <td class="vol" style="color:#666">×0.47</td>
+          <span class="src src-binance">BIN</span>
         </tr>
         <tr>
           <td class="rank">#50</td>
           <td class="symbol">PEPE</td>
           <td class="price">$0.000003</td>
-          <td class="rsi">43.5 <span class="arr-dn">▼</span></td>
-          <td class="rsi oversold">20.7 <span class="arr-dn">▼</span></td>
-          <td class="rsi">36.9 <span class="arr-dn">▼</span></td>
-          <td class="rsi">36.4 </td>
-          <td class="vol" style="color:#555">×0.14</td>
-          <td class="src src-bin">BIN</td>
-        </tr>
-        <tr>
-          <td class="rank">#2</td>
-          <td class="symbol">ETH</td>
-          <td class="price">$2,023</td>
-          <td class="rsi">47.5 <span class="arr-dn">▼</span></td>
-          <td class="rsi oversold">21.6 <span class="arr-dn">▼</span></td>
-          <td class="rsi">52.1 <span class="arr-dn">▼</span></td>
-          <td class="rsi">48.1 </td>
-          <td class="vol" style="color:#555">×0.13</td>
-          <td class="src src-bin">BIN</td>
-        </tr>
-        <tr>
-          <td class="rank">#52</td>
-          <td class="symbol">AAVE</td>
-          <td class="price">$82.903</td>
-          <td class="rsi">40.8 <span class="arr-dn">▼</span></td>
-          <td class="rsi oversold">21.7 <span class="arr-dn">▼</span></td>
-          <td class="rsi oversold">27.9 <span class="arr-dn">▼</span></td>
-          <td class="rsi">37.8 </td>
-          <td class="vol" style="color:#555">×0.1</td>
-          <td class="src src-bin">BIN</td>
-        </tr>
-        <tr>
-          <td class="rank">#13</td>
-          <td class="symbol">ADA</td>
-          <td class="price">$0.2366</td>
-          <td class="rsi">45.1 <span class="arr-dn">▼</span></td>
-          <td class="rsi oversold">23.1 <span class="arr-dn">▼</span></td>
-          <td class="rsi">39.2 <span class="arr-dn">▼</span></td>
-          <td class="rsi oversold">30.0 </td>
-          <td class="vol" style="color:#555">×0.16</td>
-          <td class="src src-bin">BIN</td>
+          <td class="rsi oversold">19.1</td>
+          <td class="vol" style="color:#666">×0.36</td>
+          <span class="src src-binance">BIN</span>
         </tr>
         <tr>
           <td class="rank">#67</td>
           <td class="symbol">ENA</td>
-          <td class="price">$0.0902</td>
-          <td class="rsi">58.5 <span class="arr-dn">▼</span></td>
-          <td class="rsi oversold">23.2 <span class="arr-dn">▼</span></td>
-          <td class="rsi">41.6 <span class="arr-dn">▼</span></td>
-          <td class="rsi">35.2 </td>
-          <td class="vol" style="color:#555">×0.49</td>
-          <td class="src src-bin">BIN</td>
+          <td class="price">$0.0903</td>
+          <td class="rsi oversold">19.7</td>
+          <td class="vol" style="color:#666">×0.57</td>
+          <span class="src src-binance">BIN</span>
+        </tr>
+        <tr>
+          <td class="rank">#2</td>
+          <td class="symbol">ETH</td>
+          <td class="price">$2,024</td>
+          <td class="rsi oversold">20.9</td>
+          <td class="vol" style="color:#666">×0.35</td>
+          <span class="src src-binance">BIN</span>
+        </tr>
+        <tr>
+          <td class="rank">#52</td>
+          <td class="symbol">AAVE</td>
+          <td class="price">$82.906</td>
+          <td class="rsi oversold">21.0</td>
+          <td class="vol" style="color:#666">×0.41</td>
+          <span class="src src-binance">BIN</span>
+        </tr>
+        <tr>
+          <td class="rank">#13</td>
+          <td class="symbol">ADA</td>
+          <td class="price">$0.2368</td>
+          <td class="rsi oversold">21.7</td>
+          <td class="vol" style="color:#666">×0.74</td>
+          <span class="src src-binance">BIN</span>
         </tr>
         <tr>
           <td class="rank">#28</td>
           <td class="symbol">SHIB</td>
           <td class="price">$0.000005</td>
-          <td class="rsi">37.1 <span class="arr-dn">▼</span></td>
-          <td class="rsi oversold">23.7 <span class="arr-dn">▼</span></td>
-          <td class="rsi">38.8 <span class="arr-dn">▼</span></td>
-          <td class="rsi oversold">17.6 <span class="arr-dn">▼</span></td>
-          <td class="vol" style="color:#555">×0.11</td>
-          <td class="src src-bin">BIN</td>
+          <td class="rsi oversold">23.9</td>
+          <td class="vol" style="color:#666">×0.36</td>
+          <span class="src src-binance">BIN</span>
         </tr>
         <tr>
           <td class="rank">#39</td>
           <td class="symbol">UNI</td>
           <td class="price">$3.035</td>
-          <td class="rsi">35.8 <span class="arr-dn">▼</span></td>
-          <td class="rsi oversold">23.7 <span class="arr-dn">▼</span></td>
-          <td class="rsi">44.1 <span class="arr-dn">▼</span></td>
-          <td class="rsi">33.8 </td>
-          <td class="vol" style="color:#555">×0.15</td>
-          <td class="src src-bin">BIN</td>
+          <td class="rsi oversold">24.1</td>
+          <td class="vol" style="color:#666">×0.34</td>
+          <span class="src src-binance">BIN</span>
         </tr>
         <tr>
           <td class="rank">#24</td>
           <td class="symbol">LTC</td>
-          <td class="price">$52.386</td>
-          <td class="rsi">51.2 <span class="arr-dn">▼</span></td>
-          <td class="rsi oversold">24.5 </td>
-          <td class="rsi">45.2 </td>
-          <td class="rsi oversold">21.3 </td>
-          <td class="vol" style="color:#555">×0.16</td>
-          <td class="src src-bin">BIN</td>
-        </tr>
-        <tr>
-          <td class="rank">#7</td>
-          <td class="symbol">SOL</td>
-          <td class="price">$82.595</td>
-          <td class="rsi">42.1 <span class="arr-dn">▼</span></td>
-          <td class="rsi oversold">25.8 <span class="arr-dn">▼</span></td>
-          <td class="rsi">47.1 <span class="arr-dn">▼</span></td>
-          <td class="rsi">36.2 </td>
-          <td class="vol" style="color:#555">×0.13</td>
-          <td class="src src-bin">BIN</td>
+          <td class="price">$52.445</td>
+          <td class="rsi oversold">24.2</td>
+          <td class="vol" style="color:#666">×0.66</td>
+          <span class="src src-binance">BIN</span>
         </tr>
         <tr>
           <td class="rank">#80</td>
           <td class="symbol">VET</td>
           <td class="price">$0.006119</td>
-          <td class="rsi">44.3 <span class="arr-dn">▼</span></td>
-          <td class="rsi oversold">26.0 <span class="arr-dn">▼</span></td>
-          <td class="rsi">35.7 </td>
-          <td class="rsi oversold">19.3 </td>
-          <td class="vol" style="color:#555">×0.33</td>
-          <td class="src src-bin">BIN</td>
+          <td class="rsi oversold">25.5</td>
+          <td class="vol" style="color:#ff4444">×2.46 📈</td>
+          <span class="src src-binance">BIN</span>
+        </tr>
+        <tr>
+          <td class="rank">#7</td>
+          <td class="symbol">SOL</td>
+          <td class="price">$82.689</td>
+          <td class="rsi oversold">25.8</td>
+          <td class="vol" style="color:#666">×0.4</td>
+          <span class="src src-binance">BIN</span>
         </tr>
         <tr>
           <td class="rank">#1</td>
           <td class="symbol">BTC</td>
-          <td class="price">$73,808</td>
-          <td class="rsi">42.5 <span class="arr-dn">▼</span></td>
-          <td class="rsi oversold">26.6 <span class="arr-dn">▼</span></td>
-          <td class="rsi">55.8 <span class="arr-dn">▼</span></td>
-          <td class="rsi">45.1 </td>
-          <td class="vol" style="color:#555">×0.16</td>
-          <td class="src src-bin">BIN</td>
-        </tr>
-        <tr>
-          <td class="rank">#98</td>
-          <td class="symbol">SIREN</td>
-          <td class="price">$0.4980</td>
-          <td class="rsi">67.0 </td>
-          <td class="rsi oversold">27.3 </td>
-          <td class="rsi">53.2 </td>
-          <td class="rsi">—</td>
-          <td class="vol" style="color:#555">×0.07</td>
-          <td class="src src-kuc">KUC</td>
+          <td class="price">$73,834</td>
+          <td class="rsi oversold">26.3</td>
+          <td class="vol" style="color:#666">×0.51</td>
+          <span class="src src-binance">BIN</span>
         </tr>
         <tr>
           <td class="rank">#69</td>
           <td class="symbol">APT</td>
-          <td class="price">$0.9380</td>
-          <td class="rsi">43.5 <span class="arr-dn">▼</span></td>
-          <td class="rsi oversold">27.4 </td>
-          <td class="rsi">50.4 </td>
-          <td class="rsi oversold">7.6 </td>
-          <td class="vol" style="color:#555">×0.11</td>
-          <td class="src src-bin">BIN</td>
+          <td class="price">$0.9406</td>
+          <td class="rsi oversold">27.4</td>
+          <td class="vol" style="color:#666">×0.66</td>
+          <span class="src src-binance">BIN</span>
+        </tr>
+        <tr>
+          <td class="rank">#61</td>
+          <td class="symbol">POL</td>
+          <td class="price">$0.0908</td>
+          <td class="rsi oversold">28.2</td>
+          <td class="vol" style="color:#aaa">×0.95</td>
+          <span class="src src-binance">BIN</span>
         </tr>
         <tr>
           <td class="rank">#95</td>
           <td class="symbol">ZRO</td>
           <td class="price">$1.150</td>
-          <td class="rsi">53.7 <span class="arr-dn">▼</span></td>
-          <td class="rsi oversold">28.2 </td>
-          <td class="rsi">36.4 </td>
-          <td class="rsi oversold">29.1 </td>
-          <td class="vol" style="color:#555">×0.24</td>
-          <td class="src src-bin">BIN</td>
+          <td class="rsi oversold">28.2</td>
+          <td class="vol" style="color:#aaa">×0.91</td>
+          <span class="src src-binance">BIN</span>
         </tr>
         <tr>
           <td class="rank">#82</td>
           <td class="symbol">PENGU</td>
-          <td class="price">$0.007971</td>
-          <td class="rsi">35.8 <span class="arr-dn">▼</span></td>
-          <td class="rsi oversold">28.5 </td>
-          <td class="rsi">53.8 <span class="arr-dn">▼</span></td>
-          <td class="rsi">49.1 </td>
-          <td class="vol" style="color:#555">×0.11</td>
-          <td class="src src-bin">BIN</td>
+          <td class="price">$0.007993</td>
+          <td class="rsi oversold">28.6</td>
+          <td class="vol" style="color:#666">×0.52</td>
+          <span class="src src-binance">BIN</span>
         </tr>
         <tr>
           <td class="rank">#88</td>
           <td class="symbol">TRUMP</td>
-          <td class="price">$1.995</td>
-          <td class="rsi">46.4 <span class="arr-up">▲</span></td>
-          <td class="rsi oversold">28.7 <span class="arr-up">▲</span></td>
-          <td class="rsi">32.0 </td>
-          <td class="rsi oversold">20.6 </td>
-          <td class="vol" style="color:#555">×0.15</td>
-          <td class="src src-bin">BIN</td>
+          <td class="price">$1.997</td>
+          <td class="rsi oversold">28.6</td>
+          <td class="vol" style="color:#666">×0.68</td>
+          <span class="src src-binance">BIN</span>
         </tr>
         <tr>
           <td class="rank">#77</td>
           <td class="symbol">JUP</td>
-          <td class="price">$0.1850</td>
-          <td class="rsi">46.0 <span class="arr-dn">▼</span></td>
-          <td class="rsi oversold">29.1 <span class="arr-dn">▼</span></td>
-          <td class="rsi">53.8 <span class="arr-dn">▼</span></td>
-          <td class="rsi oversold">17.8 </td>
-          <td class="vol" style="color:#555">×0.09</td>
-          <td class="src src-bin">BIN</td>
+          <td class="price">$0.1853</td>
+          <td class="rsi oversold">29.0</td>
+          <td class="vol" style="color:#666">×0.42</td>
+          <span class="src src-binance">BIN</span>
+        </tr>
+        <tr>
+          <td class="rank">#16</td>
+          <td class="symbol">LINK</td>
+          <td class="price">$9.250</td>
+          <td class="rsi oversold">29.6</td>
+          <td class="vol" style="color:#666">×0.62</td>
+          <span class="src src-binance">BIN</span>
         </tr>
         <tr>
           <td class="rank">#37</td>
           <td class="symbol">DOT</td>
-          <td class="price">$1.189</td>
-          <td class="rsi">40.5 <span class="arr-dn">▼</span></td>
-          <td class="rsi oversold">29.8 <span class="arr-dn">▼</span></td>
-          <td class="rsi">41.7 <span class="arr-dn">▼</span></td>
-          <td class="rsi oversold">14.0 </td>
-          <td class="vol" style="color:#555">×0.18</td>
-          <td class="src src-bin">BIN</td>
+          <td class="price">$1.191</td>
+          <td class="rsi oversold">29.6</td>
+          <td class="vol" style="color:#666">×0.7</td>
+          <span class="src src-binance">BIN</span>
         </tr></tbody>
       </table>
-      </div>
     </div>
-  <hr>
+  <hr class="divider">
   
     <div class="section">
-      <div class="stitle gray">⬜ Нейтральные <span class="badge">58</span></div>
-      <div class="tscroll">
+      <div class="section-title gray">⬜ Нейтральные <span class="badge">56</span></div>
       <table>
-        <thead><tr>
-          <th>#</th><th>Монета</th><th>Цена</th>
-          <th>RSI 1H</th><th>RSI 1D (14D)</th><th>RSI 1W</th><th>RSI 1M</th>
-          <th>Объём</th><th>Биржа</th>
-        </tr></thead>
+        <thead>
+          <tr><th>#</th><th>Монета</th><th>Цена</th><th>RSI 14d</th><th>Объём</th><th>Биржа</th></tr>
+        </thead>
         <tbody>
         <tr>
-          <td class="rank">#14</td>
-          <td class="symbol">XLM</td>
-          <td class="price">$0.2400</td>
-          <td class="rsi">45.4 <span class="arr-up">▲</span></td>
-          <td class="rsi">69.6 <span class="arr-up">▲</span></td>
-          <td class="rsi">65.9 <span class="arr-up">▲</span></td>
-          <td class="rsi">46.8 <span class="arr-up">▲</span></td>
-          <td class="vol" style="color:#aaa">×1.2</td>
-          <td class="src src-bin">BIN</td>
-        </tr>
-        <tr>
-          <td class="rank">#73</td>
-          <td class="symbol">NIGHT</td>
-          <td class="price">$0.0397</td>
-          <td class="rsi">64.0 <span class="arr-dn">▼</span></td>
-          <td class="rsi">68.9 <span class="arr-up">▲</span></td>
-          <td class="rsi">—</td>
-          <td class="rsi">—</td>
-          <td class="vol" style="color:#555">×0.44</td>
-          <td class="src src-bin">BIN</td>
+          <td class="rank">#68</td>
+          <td class="symbol">JST</td>
+          <td class="price">$0.0921</td>
+          <td class="rsi ">69.4</td>
+          <td class="vol" style="color:#aaa">×0.81</td>
+          <span class="src src-binance">BIN</span>
         </tr>
         <tr>
           <td class="rank">#4</td>
           <td class="symbol">BNB</td>
-          <td class="price">$721.143</td>
-          <td class="rsi">54.8 <span class="arr-dn">▼</span></td>
-          <td class="rsi">68.7 <span class="arr-dn">▼</span></td>
-          <td class="rsi">65.9 <span class="arr-dn">▼</span></td>
-          <td class="rsi">56.5 </td>
-          <td class="vol" style="color:#ff8800">×1.61</td>
-          <td class="src src-bin">BIN</td>
+          <td class="price">$723.665</td>
+          <td class="rsi ">67.9</td>
+          <td class="vol" style="color:#ff4444">×4.71</td>
+          <span class="src src-binance">BIN</span>
+        </tr>
+        <tr>
+          <td class="rank">#14</td>
+          <td class="symbol">XLM</td>
+          <td class="price">$0.2426</td>
+          <td class="rsi ">67.1</td>
+          <td class="vol" style="color:#ff4444">×6.68</td>
+          <span class="src src-binance">BIN</span>
+        </tr>
+        <tr>
+          <td class="rank">#73</td>
+          <td class="symbol">NIGHT</td>
+          <td class="price">$0.0398</td>
+          <td class="rsi ">66.2</td>
+          <td class="vol" style="color:#ff8800">×1.96</td>
+          <span class="src src-binance">BIN</span>
         </tr>
         <tr>
           <td class="rank">#58</td>
           <td class="symbol">U</td>
-          <td class="price">$0.9999</td>
-          <td class="rsi">50.5 <span class="arr-up">▲</span></td>
-          <td class="rsi">65.9 <span class="arr-up">▲</span></td>
-          <td class="rsi">56.3 <span class="arr-up">▲</span></td>
-          <td class="rsi">—</td>
-          <td class="vol" style="color:#555">×0.63</td>
-          <td class="src src-bin">BIN</td>
+          <td class="price">$0.9995</td>
+          <td class="rsi ">64.4</td>
+          <td class="vol" style="color:#666">×0.79</td>
+          <span class="src src-binance">BIN</span>
         </tr>
         <tr>
-          <td class="rank">#43</td>
-          <td class="symbol">RLUSD</td>
-          <td class="price">$1.0000</td>
-          <td class="rsi">55.6 <span class="arr-up">▲</span></td>
-          <td class="rsi">63.5 </td>
-          <td class="rsi">59.2 </td>
-          <td class="rsi">—</td>
-          <td class="vol" style="color:#555">×0.11</td>
-          <td class="src src-bin">BIN</td>
+          <td class="rank">#78</td>
+          <td class="symbol">FET</td>
+          <td class="price">$0.2705</td>
+          <td class="rsi ">64.0</td>
+          <td class="vol" style="color:#ff4444">×3.24</td>
+          <span class="src src-binance">BIN</span>
         </tr>
         <tr>
-          <td class="rank">#31</td>
-          <td class="symbol">NEAR</td>
-          <td class="price">$2.273</td>
-          <td class="rsi">40.7 <span class="arr-dn">▼</span></td>
-          <td class="rsi">62.6 <span class="arr-dn">▼</span></td>
-          <td class="rsi overbought">76.5 <span class="arr-dn">▼</span></td>
-          <td class="rsi">41.9 <span class="arr-dn">▼</span></td>
-          <td class="vol" style="color:#555">×0.32</td>
-          <td class="src src-bin">BIN</td>
-        </tr>
-        <tr>
-          <td class="rank">#96</td>
-          <td class="symbol">KITE</td>
-          <td class="price">$0.2118</td>
-          <td class="rsi overbought">75.6 <span class="arr-up">▲</span></td>
-          <td class="rsi">62.1 <span class="arr-dn">▼</span></td>
-          <td class="rsi">50.6 <span class="arr-dn">▼</span></td>
-          <td class="rsi">—</td>
-          <td class="vol" style="color:#555">×0.47</td>
-          <td class="src src-bin">BIN</td>
-        </tr>
-        <tr>
-          <td class="rank">#22</td>
-          <td class="symbol">USDE</td>
-          <td class="price">$0.9991</td>
-          <td class="rsi">62.7 <span class="arr-up">▲</span></td>
-          <td class="rsi">60.7 <span class="arr-up">▲</span></td>
-          <td class="rsi">66.3 <span class="arr-up">▲</span></td>
-          <td class="rsi">—</td>
-          <td class="vol" style="color:#555">×0.32</td>
-          <td class="src src-bin">BIN</td>
+          <td class="rank">#83</td>
+          <td class="symbol">币安人生</td>
+          <td class="price">$0.4938</td>
+          <td class="rsi ">63.3</td>
+          <td class="vol" style="color:#ff4444">×2.24</td>
+          <span class="src src-binance">BIN</span>
         </tr>
         <tr>
           <td class="rank">#34</td>
           <td class="symbol">USDG</td>
           <td class="price">$0.9999</td>
-          <td class="rsi oversold">23.5 <span class="arr-dn">▼</span></td>
-          <td class="rsi">60.1 <span class="arr-dn">▼</span></td>
-          <td class="rsi">43.9 <span class="arr-dn">▼</span></td>
-          <td class="rsi">—</td>
-          <td class="vol" style="color:#555">×0.02</td>
-          <td class="src src-kuc">KUC</td>
+          <td class="rsi ">62.9</td>
+          <td class="vol" style="color:#ff8800">×1.94</td>
+          <span class="src src-kucoin">KUC</span>
         </tr>
         <tr>
-          <td class="rank">#78</td>
-          <td class="symbol">FET</td>
-          <td class="price">$0.2670</td>
-          <td class="rsi">46.9 <span class="arr-up">▲</span></td>
-          <td class="rsi">59.4 <span class="arr-up">▲</span></td>
-          <td class="rsi">65.2 <span class="arr-up">▲</span></td>
-          <td class="rsi">35.7 </td>
-          <td class="vol" style="color:#555">×0.75</td>
-          <td class="src src-bin">BIN</td>
+          <td class="rank">#43</td>
+          <td class="symbol">RLUSD</td>
+          <td class="price">$0.9998</td>
+          <td class="rsi ">62.1</td>
+          <td class="vol" style="color:#666">×0.29</td>
+          <span class="src src-binance">BIN</span>
         </tr>
         <tr>
-          <td class="rank">#64</td>
-          <td class="symbol">VVV</td>
-          <td class="price">$18.163</td>
-          <td class="rsi overbought">71.0 <span class="arr-dn">▼</span></td>
-          <td class="rsi">59.3 <span class="arr-dn">▼</span></td>
-          <td class="rsi overbought">93.7 <span class="arr-dn">▼</span></td>
-          <td class="rsi">—</td>
-          <td class="vol" style="color:#555">×0.36</td>
-          <td class="src src-kuc">KUC</td>
+          <td class="rank">#31</td>
+          <td class="symbol">NEAR</td>
+          <td class="price">$2.279</td>
+          <td class="rsi ">61.7</td>
+          <td class="vol" style="color:#666">×0.76</td>
+          <span class="src src-binance">BIN</span>
+        </tr>
+        <tr>
+          <td class="rank">#40</td>
+          <td class="symbol">ASTER</td>
+          <td class="price">$0.7416</td>
+          <td class="rsi ">60.0</td>
+          <td class="vol" style="color:#ff4444">×2.5</td>
+          <span class="src src-binance">BIN</span>
         </tr>
         <tr>
           <td class="rank">#71</td>
           <td class="symbol">XDC</td>
           <td class="price">$0.0337</td>
-          <td class="rsi">41.8 <span class="arr-dn">▼</span></td>
-          <td class="rsi">58.1 <span class="arr-up">▲</span></td>
-          <td class="rsi">49.4 <span class="arr-up">▲</span></td>
-          <td class="rsi">—</td>
-          <td class="vol" style="color:#555">×0.12</td>
-          <td class="src src-kuc">KUC</td>
-        </tr>
-        <tr>
-          <td class="rank">#40</td>
-          <td class="symbol">ASTER</td>
-          <td class="price">$0.7371</td>
-          <td class="rsi">46.3 <span class="arr-dn">▼</span></td>
-          <td class="rsi">58.0 <span class="arr-dn">▼</span></td>
-          <td class="rsi">51.3 <span class="arr-dn">▼</span></td>
-          <td class="rsi">—</td>
-          <td class="vol" style="color:#ff4444">×2.02</td>
-          <td class="src src-bin">BIN</td>
+          <td class="rsi ">59.5</td>
+          <td class="vol" style="color:#aaa">×1.47</td>
+          <span class="src src-kucoin">KUC</span>
         </tr>
         <tr>
           <td class="rank">#54</td>
           <td class="symbol">WLD</td>
-          <td class="price">$0.3358</td>
-          <td class="rsi oversold">29.6 <span class="arr-dn">▼</span></td>
-          <td class="rsi">56.9 <span class="arr-dn">▼</span></td>
-          <td class="rsi">43.0 <span class="arr-dn">▼</span></td>
-          <td class="rsi">35.4 <span class="arr-dn">▼</span></td>
-          <td class="vol" style="color:#555">×0.44</td>
-          <td class="src src-bin">BIN</td>
+          <td class="price">$0.3369</td>
+          <td class="rsi ">58.6</td>
+          <td class="vol" style="color:#ff4444">×2.16</td>
+          <span class="src src-binance">BIN</span>
         </tr>
         <tr>
-          <td class="rank">#68</td>
-          <td class="symbol">JST</td>
-          <td class="price">$0.0919</td>
-          <td class="rsi oversold">21.7 <span class="arr-up">▲</span></td>
-          <td class="rsi">56.1 </td>
-          <td class="rsi overbought">87.5 </td>
-          <td class="rsi overbought">86.3 </td>
-          <td class="vol" style="color:#ff8800">×1.67</td>
-          <td class="src src-bin">BIN</td>
+          <td class="rank">#22</td>
+          <td class="symbol">USDE</td>
+          <td class="price">$0.9990</td>
+          <td class="rsi ">58.1</td>
+          <td class="vol" style="color:#aaa">×0.83</td>
+          <span class="src src-binance">BIN</span>
         </tr>
         <tr>
-          <td class="rank">#63</td>
-          <td class="symbol">STABLE</td>
-          <td class="price">$0.0369</td>
-          <td class="rsi">54.7 <span class="arr-up">▲</span></td>
-          <td class="rsi">56.0 <span class="arr-up">▲</span></td>
-          <td class="rsi">61.8 <span class="arr-up">▲</span></td>
-          <td class="rsi">—</td>
-          <td class="vol" style="color:#555">×0.03</td>
-          <td class="src src-kuc">KUC</td>
-        </tr>
-        <tr>
-          <td class="rank">#53</td>
-          <td class="symbol">ALGO</td>
-          <td class="price">$0.1285</td>
-          <td class="rsi">52.6 <span class="arr-up">▲</span></td>
-          <td class="rsi">55.2 <span class="arr-up">▲</span></td>
-          <td class="rsi">59.4 <span class="arr-up">▲</span></td>
-          <td class="rsi">36.2 <span class="arr-up">▲</span></td>
-          <td class="vol" style="color:#555">×0.65</td>
-          <td class="src src-bin">BIN</td>
-        </tr>
-        <tr>
-          <td class="rank">#84</td>
-          <td class="symbol">币安人生</td>
-          <td class="price">$0.4923</td>
-          <td class="rsi">41.6 <span class="arr-dn">▼</span></td>
-          <td class="rsi">54.7 <span class="arr-dn">▼</span></td>
-          <td class="rsi overbought">74.5 <span class="arr-dn">▼</span></td>
-          <td class="rsi">—</td>
-          <td class="vol" style="color:#555">×0.77</td>
-          <td class="src src-bin">BIN</td>
-        </tr>
-        <tr>
-          <td class="rank">#23</td>
-          <td class="symbol">HBAR</td>
-          <td class="price">$0.0974</td>
-          <td class="rsi">49.0 <span class="arr-up">▲</span></td>
-          <td class="rsi">54.2 <span class="arr-dn">▼</span></td>
-          <td class="rsi">48.2 <span class="arr-dn">▼</span></td>
-          <td class="rsi">35.3 </td>
-          <td class="vol" style="color:#555">×0.63</td>
-          <td class="src src-bin">BIN</td>
-        </tr>
-        <tr>
-          <td class="rank">#21</td>
-          <td class="symbol">USD1</td>
-          <td class="price">$0.9984</td>
-          <td class="rsi">45.7 <span class="arr-up">▲</span></td>
-          <td class="rsi">53.6 <span class="arr-dn">▼</span></td>
-          <td class="rsi">48.8 <span class="arr-dn">▼</span></td>
-          <td class="rsi">—</td>
-          <td class="vol" style="color:#555">×0.16</td>
-          <td class="src src-bin">BIN</td>
+          <td class="rank">#96</td>
+          <td class="symbol">KITE</td>
+          <td class="price">$0.2119</td>
+          <td class="rsi ">55.3</td>
+          <td class="vol" style="color:#666">×0.36</td>
+          <span class="src src-binance">BIN</span>
         </tr>
         <tr>
           <td class="rank">#87</td>
           <td class="symbol">EDGE</td>
-          <td class="price">$1.358</td>
-          <td class="rsi">44.3 <span class="arr-up">▲</span></td>
-          <td class="rsi">53.1 <span class="arr-up">▲</span></td>
-          <td class="rsi">—</td>
-          <td class="rsi">—</td>
-          <td class="vol" style="color:#555">×0.23</td>
-          <td class="src src-kuc">KUC</td>
+          <td class="price">$1.360</td>
+          <td class="rsi ">55.3</td>
+          <td class="vol" style="color:#aaa">×1.2</td>
+          <span class="src src-kucoin">KUC</span>
+        </tr>
+        <tr>
+          <td class="rank">#21</td>
+          <td class="symbol">USD1</td>
+          <td class="price">$0.9983</td>
+          <td class="rsi ">54.4</td>
+          <td class="vol" style="color:#666">×0.59</td>
+          <span class="src src-binance">BIN</span>
+        </tr>
+        <tr>
+          <td class="rank">#63</td>
+          <td class="symbol">STABLE</td>
+          <td class="price">$0.0370</td>
+          <td class="rsi ">53.9</td>
+          <td class="vol" style="color:#666">×0.38</td>
+          <span class="src src-kucoin">KUC</span>
         </tr>
         <tr>
           <td class="rank">#56</td>
           <td class="symbol">RENDER</td>
-          <td class="price">$2.098</td>
-          <td class="rsi">51.1 <span class="arr-dn">▼</span></td>
-          <td class="rsi">53.0 <span class="arr-dn">▼</span></td>
-          <td class="rsi">65.2 <span class="arr-dn">▼</span></td>
-          <td class="rsi">37.9 <span class="arr-dn">▼</span></td>
-          <td class="vol" style="color:#555">×0.39</td>
-          <td class="src src-bin">BIN</td>
-        </tr>
-        <tr>
-          <td class="rank">#18</td>
-          <td class="symbol">CC</td>
-          <td class="price">$0.1536</td>
-          <td class="rsi">42.0 <span class="arr-up">▲</span></td>
-          <td class="rsi">51.8 <span class="arr-up">▲</span></td>
-          <td class="rsi">35.4 <span class="arr-up">▲</span></td>
-          <td class="rsi">—</td>
-          <td class="vol" style="color:#555">×0.1</td>
-          <td class="src src-kuc">KUC</td>
+          <td class="price">$2.105</td>
+          <td class="rsi ">53.2</td>
+          <td class="vol" style="color:#aaa">×1.25</td>
+          <span class="src src-binance">BIN</span>
         </tr>
         <tr>
           <td class="rank">#35</td>
           <td class="symbol">MNT</td>
-          <td class="price">$0.6740</td>
-          <td class="rsi">61.0 <span class="arr-dn">▼</span></td>
-          <td class="rsi">51.6 <span class="arr-up">▲</span></td>
-          <td class="rsi">48.4 <span class="arr-up">▲</span></td>
-          <td class="rsi">—</td>
-          <td class="vol" style="color:#555">×0.66</td>
-          <td class="src src-kuc">KUC</td>
+          <td class="price">$0.6752</td>
+          <td class="rsi ">52.2</td>
+          <td class="vol" style="color:#ff8800">×1.91</td>
+          <span class="src src-kucoin">KUC</span>
+        </tr>
+        <tr>
+          <td class="rank">#53</td>
+          <td class="symbol">ALGO</td>
+          <td class="price">$0.1292</td>
+          <td class="rsi ">51.1</td>
+          <td class="vol" style="color:#ff4444">×5.33</td>
+          <span class="src src-binance">BIN</span>
+        </tr>
+        <tr>
+          <td class="rank">#64</td>
+          <td class="symbol">VVV</td>
+          <td class="price">$17.999</td>
+          <td class="rsi ">51.1</td>
+          <td class="vol" style="color:#666">×0.46</td>
+          <span class="src src-kucoin">KUC</span>
+        </tr>
+        <tr>
+          <td class="rank">#23</td>
+          <td class="symbol">HBAR</td>
+          <td class="price">$0.0972</td>
+          <td class="rsi ">50.4</td>
+          <td class="vol" style="color:#ff4444">×6.12</td>
+          <span class="src src-binance">BIN</span>
         </tr>
         <tr>
           <td class="rank">#59</td>
           <td class="symbol">MORPHO</td>
-          <td class="price">$2.153</td>
-          <td class="rsi">54.2 <span class="arr-dn">▼</span></td>
-          <td class="rsi">48.8 <span class="arr-dn">▼</span></td>
-          <td class="rsi">64.2 <span class="arr-dn">▼</span></td>
-          <td class="rsi">—</td>
-          <td class="vol" style="color:#555">×0.19</td>
-          <td class="src src-bin">BIN</td>
+          <td class="price">$2.156</td>
+          <td class="rsi ">50.2</td>
+          <td class="vol" style="color:#666">×0.56</td>
+          <span class="src src-binance">BIN</span>
+        </tr>
+        <tr>
+          <td class="rank">#60</td>
+          <td class="symbol">ATOM</td>
+          <td class="price">$1.983</td>
+          <td class="rsi ">48.4</td>
+          <td class="vol" style="color:#666">×0.33</td>
+          <span class="src src-binance">BIN</span>
         </tr>
         <tr>
           <td class="rank">#85</td>
           <td class="symbol">CAKE</td>
           <td class="price">$1.505</td>
-          <td class="rsi">49.0 <span class="arr-dn">▼</span></td>
-          <td class="rsi">47.4 <span class="arr-dn">▼</span></td>
-          <td class="rsi">59.7 <span class="arr-dn">▼</span></td>
-          <td class="rsi">40.2 </td>
-          <td class="vol" style="color:#ff8800">×1.79</td>
-          <td class="src src-bin">BIN</td>
+          <td class="rsi ">46.5</td>
+          <td class="vol" style="color:#ff4444">×2.52</td>
+          <span class="src src-binance">BIN</span>
         </tr>
         <tr>
-          <td class="rank">#12</td>
-          <td class="symbol">ZEC</td>
-          <td class="price">$549.516</td>
-          <td class="rsi">60.8 <span class="arr-dn">▼</span></td>
-          <td class="rsi">46.3 <span class="arr-dn">▼</span></td>
-          <td class="rsi">62.9 <span class="arr-dn">▼</span></td>
-          <td class="rsi overbought">73.1 <span class="arr-dn">▼</span></td>
-          <td class="vol" style="color:#555">×0.28</td>
-          <td class="src src-bin">BIN</td>
-        </tr>
-        <tr>
-          <td class="rank">#60</td>
-          <td class="symbol">ATOM</td>
-          <td class="price">$1.979</td>
-          <td class="rsi oversold">23.3 <span class="arr-up">▲</span></td>
-          <td class="rsi">46.0 <span class="arr-up">▲</span></td>
-          <td class="rsi">45.4 <span class="arr-up">▲</span></td>
-          <td class="rsi oversold">18.1 <span class="arr-up">▲</span></td>
-          <td class="vol" style="color:#555">×0.29</td>
-          <td class="src src-bin">BIN</td>
-        </tr>
-        <tr>
-          <td class="rank">#94</td>
-          <td class="symbol">AERO</td>
-          <td class="price">$0.4197</td>
-          <td class="rsi">48.8 <span class="arr-dn">▼</span></td>
-          <td class="rsi">45.5 <span class="arr-dn">▼</span></td>
-          <td class="rsi">56.2 <span class="arr-dn">▼</span></td>
-          <td class="rsi">—</td>
-          <td class="vol" style="color:#555">×0.11</td>
-          <td class="src src-kuc">KUC</td>
-        </tr>
-        <tr>
-          <td class="rank">#8</td>
-          <td class="symbol">TRX</td>
-          <td class="price">$0.3477</td>
-          <td class="rsi">52.4 <span class="arr-up">▲</span></td>
-          <td class="rsi">44.2 <span class="arr-dn">▼</span></td>
-          <td class="rsi overbought">73.5 </td>
-          <td class="rsi overbought">73.8 </td>
-          <td class="vol" style="color:#555">×0.25</td>
-          <td class="src src-bin">BIN</td>
+          <td class="rank">#18</td>
+          <td class="symbol">CC</td>
+          <td class="price">$0.1538</td>
+          <td class="rsi ">46.1</td>
+          <td class="vol" style="color:#666">×0.65</td>
+          <span class="src src-kucoin">KUC</span>
         </tr>
         <tr>
           <td class="rank">#30</td>
           <td class="symbol">CRO</td>
           <td class="price">$0.0679</td>
-          <td class="rsi">50.5 <span class="arr-dn">▼</span></td>
-          <td class="rsi">44.2 <span class="arr-dn">▼</span></td>
-          <td class="rsi">31.7 <span class="arr-dn">▼</span></td>
-          <td class="rsi">—</td>
-          <td class="vol" style="color:#555">×0.15</td>
-          <td class="src src-kuc">KUC</td>
+          <td class="rsi ">45.1</td>
+          <td class="vol" style="color:#666">×0.49</td>
+          <span class="src src-kucoin">KUC</span>
         </tr>
         <tr>
-          <td class="rank">#72</td>
-          <td class="symbol">FLR</td>
-          <td class="price">$0.007702</td>
-          <td class="rsi">44.0 <span class="arr-dn">▼</span></td>
-          <td class="rsi">43.4 <span class="arr-up">▲</span></td>
-          <td class="rsi">32.6 <span class="arr-up">▲</span></td>
-          <td class="rsi">—</td>
-          <td class="vol" style="color:#555">×0.21</td>
-          <td class="src src-kuc">KUC</td>
+          <td class="rank">#8</td>
+          <td class="symbol">TRX</td>
+          <td class="price">$0.3486</td>
+          <td class="rsi ">44.1</td>
+          <td class="vol" style="color:#aaa">×0.92</td>
+          <span class="src src-binance">BIN</span>
         </tr>
         <tr>
-          <td class="rank">#15</td>
-          <td class="symbol">XMR</td>
-          <td class="price">$365.900</td>
-          <td class="rsi">40.5 <span class="arr-up">▲</span></td>
-          <td class="rsi">43.3 <span class="arr-up">▲</span></td>
-          <td class="rsi">45.6 <span class="arr-up">▲</span></td>
-          <td class="rsi">—</td>
-          <td class="vol" style="color:#555">×0.4</td>
-          <td class="src src-kuc">KUC</td>
-        </tr>
-        <tr>
-          <td class="rank">#62</td>
-          <td class="symbol">QNT</td>
-          <td class="price">$71.127</td>
-          <td class="rsi">43.6 <span class="arr-dn">▼</span></td>
-          <td class="rsi">42.4 </td>
-          <td class="rsi">49.9 </td>
-          <td class="rsi">43.1 </td>
-          <td class="vol" style="color:#555">×0.1</td>
-          <td class="src src-bin">BIN</td>
-        </tr>
-        <tr>
-          <td class="rank">#36</td>
-          <td class="symbol">PAXG</td>
-          <td class="price">$4,528</td>
-          <td class="rsi">65.1 <span class="arr-up">▲</span></td>
-          <td class="rsi">41.9 <span class="arr-up">▲</span></td>
-          <td class="rsi">38.3 </td>
-          <td class="rsi overbought">74.5 </td>
-          <td class="vol" style="color:#555">×0.08</td>
-          <td class="src src-bin">BIN</td>
-        </tr>
-        <tr>
-          <td class="rank">#57</td>
-          <td class="symbol">KCS</td>
-          <td class="price">$7.987</td>
-          <td class="rsi">67.9 <span class="arr-up">▲</span></td>
-          <td class="rsi">41.9 <span class="arr-dn">▼</span></td>
-          <td class="rsi">38.4 </td>
-          <td class="rsi">—</td>
-          <td class="vol" style="color:#555">×0.03</td>
-          <td class="src src-kuc">KUC</td>
-        </tr>
-        <tr>
-          <td class="rank">#33</td>
-          <td class="symbol">XAUT</td>
-          <td class="price">$4,516</td>
-          <td class="rsi">64.4 <span class="arr-up">▲</span></td>
-          <td class="rsi">41.0 </td>
-          <td class="rsi">—</td>
-          <td class="rsi">—</td>
-          <td class="vol" style="color:#555">×0.45</td>
-          <td class="src src-bin">BIN</td>
+          <td class="rank">#12</td>
+          <td class="symbol">ZEC</td>
+          <td class="price">$551.779</td>
+          <td class="rsi ">43.3</td>
+          <td class="vol" style="color:#666">×0.6</td>
+          <span class="src src-binance">BIN</span>
         </tr>
         <tr>
           <td class="rank">#42</td>
           <td class="symbol">ONDO</td>
-          <td class="price">$0.3618</td>
-          <td class="rsi">56.3 <span class="arr-dn">▼</span></td>
-          <td class="rsi">41.0 <span class="arr-dn">▼</span></td>
-          <td class="rsi">57.3 <span class="arr-dn">▼</span></td>
-          <td class="rsi">—</td>
-          <td class="vol" style="color:#555">×0.39</td>
-          <td class="src src-bin">BIN</td>
+          <td class="price">$0.3628</td>
+          <td class="rsi ">43.3</td>
+          <td class="vol" style="color:#666">×0.64</td>
+          <span class="src src-binance">BIN</span>
         </tr>
         <tr>
-          <td class="rank">#79</td>
-          <td class="symbol">NEXO</td>
-          <td class="price">$0.8618</td>
-          <td class="rsi">58.9 <span class="arr-dn">▼</span></td>
-          <td class="rsi">40.8 <span class="arr-dn">▼</span></td>
-          <td class="rsi">53.6 <span class="arr-dn">▼</span></td>
-          <td class="rsi">35.5 <span class="arr-dn">▼</span></td>
-          <td class="vol" style="color:#555">×0.6</td>
-          <td class="src src-bin">BIN</td>
+          <td class="rank">#62</td>
+          <td class="symbol">QNT</td>
+          <td class="price">$71.199</td>
+          <td class="rsi ">42.8</td>
+          <td class="vol" style="color:#666">×0.51</td>
+          <span class="src src-binance">BIN</span>
         </tr>
         <tr>
-          <td class="rank">#97</td>
+          <td class="rank">#98</td>
           <td class="symbol">TIA</td>
-          <td class="price">$0.3979</td>
-          <td class="rsi oversold">12.5 <span class="arr-dn">▼</span></td>
-          <td class="rsi">40.4 </td>
-          <td class="rsi">56.0 </td>
-          <td class="rsi oversold">8.9 </td>
-          <td class="vol" style="color:#555">×0.15</td>
-          <td class="src src-bin">BIN</td>
+          <td class="price">$0.3990</td>
+          <td class="rsi ">42.3</td>
+          <td class="vol" style="color:#666">×0.42</td>
+          <span class="src src-binance">BIN</span>
+        </tr>
+        <tr>
+          <td class="rank">#15</td>
+          <td class="symbol">XMR</td>
+          <td class="price">$366.127</td>
+          <td class="rsi ">42.3</td>
+          <td class="vol" style="color:#ff4444">×2.18</td>
+          <span class="src src-kucoin">KUC</span>
+        </tr>
+        <tr>
+          <td class="rank">#72</td>
+          <td class="symbol">FLR</td>
+          <td class="price">$0.007707</td>
+          <td class="rsi ">41.9</td>
+          <td class="vol" style="color:#666">×0.45</td>
+          <span class="src src-kucoin">KUC</span>
+        </tr>
+        <tr>
+          <td class="rank">#36</td>
+          <td class="symbol">PAXG</td>
+          <td class="price">$4,527</td>
+          <td class="rsi ">40.7</td>
+          <td class="vol" style="color:#666">×0.19</td>
+          <span class="src src-binance">BIN</span>
+        </tr>
+        <tr>
+          <td class="rank">#33</td>
+          <td class="symbol">XAUT</td>
+          <td class="price">$4,515</td>
+          <td class="rsi ">39.4</td>
+          <td class="vol" style="color:#666">×0.7</td>
+          <span class="src src-binance">BIN</span>
         </tr>
         <tr>
           <td class="rank">#81</td>
           <td class="symbol">DASH</td>
-          <td class="price">$39.484</td>
-          <td class="rsi">41.1 <span class="arr-dn">▼</span></td>
-          <td class="rsi">38.7 <span class="arr-dn">▼</span></td>
-          <td class="rsi">51.1 <span class="arr-dn">▼</span></td>
-          <td class="rsi">59.0 <span class="arr-dn">▼</span></td>
-          <td class="vol" style="color:#555">×0.18</td>
-          <td class="src src-bin">BIN</td>
+          <td class="price">$39.552</td>
+          <td class="rsi ">38.4</td>
+          <td class="vol" style="color:#666">×0.39</td>
+          <span class="src src-binance">BIN</span>
         </tr>
         <tr>
           <td class="rank">#90</td>
           <td class="symbol">SEI</td>
-          <td class="price">$0.0662</td>
-          <td class="rsi">35.7 <span class="arr-dn">▼</span></td>
-          <td class="rsi">38.1 </td>
-          <td class="rsi">44.9 </td>
-          <td class="rsi">31.5 </td>
-          <td class="vol" style="color:#555">×0.29</td>
-          <td class="src src-bin">BIN</td>
+          <td class="price">$0.0664</td>
+          <td class="rsi ">38.3</td>
+          <td class="vol" style="color:#aaa">×1.28</td>
+          <span class="src src-binance">BIN</span>
         </tr>
         <tr>
           <td class="rank">#91</td>
           <td class="symbol">LUNC</td>
           <td class="price">$0.000081</td>
-          <td class="rsi">52.2 <span class="arr-dn">▼</span></td>
-          <td class="rsi">37.9 </td>
-          <td class="rsi overbought">71.8 </td>
-          <td class="rsi">55.2 </td>
-          <td class="vol" style="color:#555">×0.08</td>
-          <td class="src src-bin">BIN</td>
+          <td class="rsi ">37.7</td>
+          <td class="vol" style="color:#666">×0.35</td>
+          <span class="src src-binance">BIN</span>
         </tr>
         <tr>
-          <td class="rank">#99</td>
-          <td class="symbol">XTZ</td>
-          <td class="price">$0.3319</td>
-          <td class="rsi">58.4 <span class="arr-up">▲</span></td>
-          <td class="rsi">35.9 <span class="arr-up">▲</span></td>
-          <td class="rsi">37.6 <span class="arr-up">▲</span></td>
-          <td class="rsi oversold">28.2 </td>
-          <td class="vol" style="color:#ff4444">×2.61</td>
-          <td class="src src-bin">BIN</td>
+          <td class="rank">#94</td>
+          <td class="symbol">AERO</td>
+          <td class="price">$0.4200</td>
+          <td class="rsi ">37.6</td>
+          <td class="vol" style="color:#666">×0.6</td>
+          <span class="src src-kucoin">KUC</span>
+        </tr>
+        <tr>
+          <td class="rank">#57</td>
+          <td class="symbol">KCS</td>
+          <td class="price">$7.986</td>
+          <td class="rsi ">37.5</td>
+          <td class="vol" style="color:#666">×0.18</td>
+          <span class="src src-kucoin">KUC</span>
         </tr>
         <tr>
           <td class="rank">#41</td>
           <td class="symbol">WLFI</td>
           <td class="price">$0.0589</td>
-          <td class="rsi">53.6 <span class="arr-up">▲</span></td>
-          <td class="rsi">35.5 </td>
-          <td class="rsi">30.4 </td>
-          <td class="rsi">—</td>
-          <td class="vol" style="color:#555">×0.21</td>
-          <td class="src src-bin">BIN</td>
+          <td class="rsi ">35.9</td>
+          <td class="vol" style="color:#666">×0.56</td>
+          <span class="src src-binance">BIN</span>
         </tr>
         <tr>
           <td class="rank">#70</td>
           <td class="symbol">FIL</td>
-          <td class="price">$0.9607</td>
-          <td class="rsi">36.4 <span class="arr-dn">▼</span></td>
-          <td class="rsi">35.0 </td>
-          <td class="rsi">50.0 </td>
-          <td class="rsi oversold">9.9 </td>
-          <td class="vol" style="color:#555">×0.25</td>
-          <td class="src src-bin">BIN</td>
-        </tr>
-        <tr>
-          <td class="rank">#5</td>
-          <td class="symbol">XRP</td>
-          <td class="price">$1.336</td>
-          <td class="rsi">30.3 <span class="arr-dn">▼</span></td>
-          <td class="rsi">34.5 <span class="arr-dn">▼</span></td>
-          <td class="rsi">40.6 <span class="arr-dn">▼</span></td>
-          <td class="rsi">36.1 </td>
-          <td class="vol" style="color:#555">×0.12</td>
-          <td class="src src-bin">BIN</td>
-        </tr>
-        <tr>
-          <td class="rank">#76</td>
-          <td class="symbol">PUMP</td>
-          <td class="price">$0.001779</td>
-          <td class="rsi">41.2 <span class="arr-dn">▼</span></td>
-          <td class="rsi">34.2 <span class="arr-dn">▼</span></td>
-          <td class="rsi">38.0 <span class="arr-dn">▼</span></td>
-          <td class="rsi">—</td>
-          <td class="vol" style="color:#555">×0.2</td>
-          <td class="src src-bin">BIN</td>
+          <td class="price">$0.9631</td>
+          <td class="rsi ">35.9</td>
+          <td class="vol" style="color:#aaa">×1.12</td>
+          <span class="src src-binance">BIN</span>
         </tr>
         <tr>
           <td class="rank">#93</td>
           <td class="symbol">STX</td>
-          <td class="price">$0.2329</td>
-          <td class="rsi oversold">29.0 <span class="arr-dn">▼</span></td>
-          <td class="rsi">34.2 <span class="arr-dn">▼</span></td>
-          <td class="rsi">42.0 <span class="arr-dn">▼</span></td>
-          <td class="rsi oversold">24.7 </td>
-          <td class="vol" style="color:#555">×0.17</td>
-          <td class="src src-bin">BIN</td>
+          <td class="price">$0.2333</td>
+          <td class="rsi ">35.4</td>
+          <td class="vol" style="color:#666">×0.5</td>
+          <span class="src src-binance">BIN</span>
         </tr>
         <tr>
-          <td class="rank">#20</td>
-          <td class="symbol">TON</td>
-          <td class="price">$1.857</td>
-          <td class="rsi">57.2 <span class="arr-up">▲</span></td>
-          <td class="rsi">33.7 <span class="arr-up">▲</span></td>
-          <td class="rsi">57.1 <span class="arr-up">▲</span></td>
-          <td class="rsi">37.7 <span class="arr-up">▲</span></td>
-          <td class="vol" style="color:#555">×0.24</td>
-          <td class="src src-bin">BIN</td>
+          <td class="rank">#99</td>
+          <td class="symbol">XTZ</td>
+          <td class="price">$0.3347</td>
+          <td class="rsi ">35.1</td>
+          <td class="vol" style="color:#ff4444">×8.29</td>
+          <span class="src src-binance">BIN</span>
+        </tr>
+        <tr>
+          <td class="rank">#5</td>
+          <td class="symbol">XRP</td>
+          <td class="price">$1.337</td>
+          <td class="rsi ">35.0</td>
+          <td class="vol" style="color:#666">×0.78</td>
+          <span class="src src-binance">BIN</span>
+        </tr>
+        <tr>
+          <td class="rank">#76</td>
+          <td class="symbol">PUMP</td>
+          <td class="price">$0.001782</td>
+          <td class="rsi ">34.1</td>
+          <td class="vol" style="color:#666">×0.53</td>
+          <span class="src src-binance">BIN</span>
         </tr>
         <tr>
           <td class="rank">#89</td>
           <td class="symbol">VIRTUAL</td>
-          <td class="price">$0.7199</td>
-          <td class="rsi">41.4 <span class="arr-dn">▼</span></td>
-          <td class="rsi">33.4 <span class="arr-dn">▼</span></td>
-          <td class="rsi">54.9 <span class="arr-dn">▼</span></td>
-          <td class="rsi">—</td>
-          <td class="vol" style="color:#555">×0.23</td>
-          <td class="src src-bin">BIN</td>
+          <td class="price">$0.7212</td>
+          <td class="rsi ">33.3</td>
+          <td class="vol" style="color:#666">×0.52</td>
+          <span class="src src-binance">BIN</span>
+        </tr>
+        <tr>
+          <td class="rank">#79</td>
+          <td class="symbol">NEXO</td>
+          <td class="price">$0.8615</td>
+          <td class="rsi ">32.3</td>
+          <td class="vol" style="color:#666">×0.31</td>
+          <span class="src src-binance">BIN</span>
         </tr>
         <tr>
           <td class="rank">#48</td>
           <td class="symbol">ICP</td>
-          <td class="price">$2.670</td>
-          <td class="rsi">45.0 <span class="arr-dn">▼</span></td>
-          <td class="rsi">33.1 <span class="arr-dn">▼</span></td>
-          <td class="rsi">53.7 <span class="arr-dn">▼</span></td>
-          <td class="rsi oversold">22.8 <span class="arr-dn">▼</span></td>
-          <td class="vol" style="color:#555">×0.18</td>
-          <td class="src src-bin">BIN</td>
-        </tr>
-        <tr>
-          <td class="rank">#65</td>
-          <td class="symbol">KAS</td>
-          <td class="price">$0.0304</td>
-          <td class="rsi">43.9 <span class="arr-dn">▼</span></td>
-          <td class="rsi">32.5 </td>
-          <td class="rsi">47.7 </td>
-          <td class="rsi">—</td>
-          <td class="vol" style="color:#555">×0.11</td>
-          <td class="src src-kuc">KUC</td>
-        </tr>
-        <tr>
-          <td class="rank">#32</td>
-          <td class="symbol">TAO</td>
-          <td class="price">$256.355</td>
-          <td class="rsi">57.9 <span class="arr-dn">▼</span></td>
-          <td class="rsi">32.3 <span class="arr-dn">▼</span></td>
-          <td class="rsi">58.0 <span class="arr-dn">▼</span></td>
-          <td class="rsi">47.0 </td>
-          <td class="vol" style="color:#555">×0.19</td>
-          <td class="src src-bin">BIN</td>
-        </tr>
-        <tr>
-          <td class="rank">#26</td>
-          <td class="symbol">AVAX</td>
-          <td class="price">$8.981</td>
-          <td class="rsi">49.7 <span class="arr-dn">▼</span></td>
-          <td class="rsi">32.1 <span class="arr-dn">▼</span></td>
-          <td class="rsi">47.8 <span class="arr-dn">▼</span></td>
-          <td class="rsi">34.1 </td>
-          <td class="vol" style="color:#555">×0.16</td>
-          <td class="src src-bin">BIN</td>
+          <td class="price">$2.675</td>
+          <td class="rsi ">32.2</td>
+          <td class="vol" style="color:#666">×0.4</td>
+          <span class="src src-binance">BIN</span>
         </tr>
         <tr>
           <td class="rank">#10</td>
           <td class="symbol">DOGE</td>
           <td class="price">$0.1005</td>
-          <td class="rsi">31.8 <span class="arr-dn">▼</span></td>
-          <td class="rsi">31.7 <span class="arr-dn">▼</span></td>
-          <td class="rsi">48.3 <span class="arr-dn">▼</span></td>
-          <td class="rsi">34.0 </td>
-          <td class="vol" style="color:#555">×0.14</td>
-          <td class="src src-bin">BIN</td>
+          <td class="rsi ">31.7</td>
+          <td class="vol" style="color:#666">×0.43</td>
+          <span class="src src-binance">BIN</span>
         </tr>
         <tr>
-          <td class="rank">#16</td>
-          <td class="symbol">LINK</td>
-          <td class="price">$9.231</td>
-          <td class="rsi">50.0 <span class="arr-dn">▼</span></td>
-          <td class="rsi">31.5 <span class="arr-dn">▼</span></td>
-          <td class="rsi">53.2 <span class="arr-dn">▼</span></td>
-          <td class="rsi">40.0 </td>
-          <td class="vol" style="color:#555">×0.2</td>
-          <td class="src src-bin">BIN</td>
+          <td class="rank">#65</td>
+          <td class="symbol">KAS</td>
+          <td class="price">$0.0304</td>
+          <td class="rsi ">31.5</td>
+          <td class="vol" style="color:#666">×0.33</td>
+          <span class="src src-kucoin">KUC</span>
         </tr>
         <tr>
-          <td class="rank">#61</td>
-          <td class="symbol">POL</td>
-          <td class="price">$0.0907</td>
-          <td class="rsi">50.8 <span class="arr-dn">▼</span></td>
-          <td class="rsi">31.1 <span class="arr-dn">▼</span></td>
-          <td class="rsi">37.3 </td>
-          <td class="rsi">30.1 </td>
-          <td class="vol" style="color:#555">×0.26</td>
-          <td class="src src-bin">BIN</td>
+          <td class="rank">#32</td>
+          <td class="symbol">TAO</td>
+          <td class="price">$257.075</td>
+          <td class="rsi ">30.9</td>
+          <td class="vol" style="color:#666">×0.46</td>
+          <span class="src src-binance">BIN</span>
+        </tr>
+        <tr>
+          <td class="rank">#26</td>
+          <td class="symbol">AVAX</td>
+          <td class="price">$8.991</td>
+          <td class="rsi ">30.6</td>
+          <td class="vol" style="color:#666">×0.48</td>
+          <span class="src src-binance">BIN</span>
+        </tr>
+        <tr>
+          <td class="rank">#20</td>
+          <td class="symbol">TON</td>
+          <td class="price">$1.871</td>
+          <td class="rsi ">30.1</td>
+          <td class="vol" style="color:#666">×0.39</td>
+          <span class="src src-binance">BIN</span>
         </tr></tbody>
       </table>
-      </div>
     </div>
-  <div class="legend">
-    <span><span class="dot" style="background:#ff4444"></span> RSI ≥ 70 перекуплен</span>
-    <span><span class="dot" style="background:#33bb55"></span> RSI ≤ 30 перепродан</span>
-    <span><span class="arr-up" style="margin:0">▲</span> RSI растёт</span>
-    <span><span class="arr-dn" style="margin:0">▼</span> RSI падает</span>
 
-  </div>
-  <script>setTimeout(()=>location.reload(), 15*60*1000)</script>
+  <script>
+    setTimeout(function() {
+      window.location.reload();
+    }, 15 * 60 * 1000);
+  </script>
 </body>
 </html>
